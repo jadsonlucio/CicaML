@@ -4,8 +4,8 @@ import plotly.express as px
 import plotly.figure_factory as ff
 from itertools import cycle, product
 from plotly.subplots import make_subplots
-from vale_ia.utils.plotly.core import update_traces
-from vale_ia.utils.array import array2string, fill_matrix
+from cicaML.utils.plotly.core import update_traces
+from cicaML.utils.array import array2string, fill_matrix
 
 COLOR_GENERATOR = cycle(px.colors.qualitative.Light24)
 
@@ -56,8 +56,8 @@ def px_grid_plot(
     row_label=None,
 ):
     """
-        This function is going to ploy an grap grouping an df based on group_cols variable an plot an
-        trace for eatch group in figure.
+    This function is going to ploy an grap grouping an df based on group_cols variable an plot an
+    trace for eatch group in figure.
     """
     extra_kwargs = extra_kwargs or {}
 

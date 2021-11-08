@@ -1,4 +1,4 @@
-from vale_ia.utils.pandas.df_plot import SeriePlotEngine, DFPlotEngine  # noqa
+from cicaML.utils.pandas.df_plot import SeriePlotEngine, DFPlotEngine  # noqa
 
 
 class TimeSeriePlotEngine(SeriePlotEngine):

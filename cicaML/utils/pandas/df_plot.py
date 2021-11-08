@@ -1,7 +1,7 @@
 from pandas.core.frame import DataFrame, Series
 import plotly.graph_objects as go
 from typing import Any, Union
-from vale_ia.utils.plotly.px_utils import px_grid_plot, px_heatmap, px_stacked_heatmap
+from cicaML.utils.plotly.px_utils import px_grid_plot, px_heatmap, px_stacked_heatmap
 
 
 class MultiplePlots:

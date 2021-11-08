@@ -8,12 +8,12 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 from sklearn.linear_model import LinearRegression
 from statsmodels.tsa.seasonal import seasonal_decompose
-from vale_ia.tsa.time_serie_plot import TimeSeriePlotEngine
-from vale_ia.utils.pandas.df import CustomSerie, CustomDataFrame
-from vale_ia.utils.functools import identity
-from vale_ia.utils.array import rolling_window
-from vale_ia.utils.collections import merge
-from vale_ia.utils.plotly_utils import hline
+from cicaML.tsa.time_serie_plot import TimeSeriePlotEngine
+from cicaML.utils.pandas.df import CustomSerie, CustomDataFrame
+from cicaML.utils.functools import identity
+from cicaML.utils.array import rolling_window
+from cicaML.utils.collections import merge
+from cicaML.utils.plotly_utils import hline
 
 group_methods = {
     "Dia": lambda time_serie: time_serie.resample("D").sum(),
@@ -349,7 +349,7 @@ class TimeSeries(CustomSerie):
             return ((self - error_serie.abs()).abs() / self).abs().mean()
 
     def cdf(self, n_bins=50):
-        """ cumulative density function """
+        """cumulative density function"""
         mu = self.mean()
         sigma = self.std()
         n_bins = 50

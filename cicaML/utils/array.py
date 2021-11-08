@@ -1,11 +1,11 @@
 import numpy as np
-from vale_ia.utils.functools import identity
+from cicaML.utils.functools import identity
 
 
 def rolling_window(array, window_size, step_size=1, func=identity):
     response = []
     for i in range(0, len(array) - window_size, step_size):
-        response.append(func(array[i: i + window_size]))
+        response.append(func(array[i : i + window_size]))
 
     return response
 
