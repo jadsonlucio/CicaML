@@ -7,11 +7,14 @@ import plotly.graph_objects as go
 import matplotlib.pyplot as plt
 from datetime import datetime
 from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
 from statsmodels.tsa.seasonal import seasonal_decompose
+from cicaML.utils.functools import identity
 from cicaML.tsa.time_serie_plot import TimeSeriePlotEngine
 from cicaML.utils.pandas.df import CustomSerie, CustomDataFrame
-from cicaML.utils.functools import identity
-from cicaML.utils.array import rolling_window
+from cicaML.pre_processing.rolling_window import create_x_y
+
+
 from cicaML.utils.collections import merge
 from cicaML.utils.plotly_utils import hline
 
@@ -70,7 +73,7 @@ class TimeSeries(CustomSerie):
     def __init__(self, *args, **kwargs):
         super().__init__(plot_engine_cls=TimeSeriePlotEngine, *args, **kwargs)
 
-    def create_ts_train_test(
+    def create_train_test(
         self,
         x_size,
         y_size,
@@ -79,20 +82,11 @@ class TimeSeries(CustomSerie):
         x_out_func=identity,
         y_out_func=identity,
     ):
-        data_x = rolling_window(
-            self.values[:-y_size], x_size, step_size, func=x_out_func
-        )
-        data_y = rolling_window(
-            self.values[x_size:], y_size, step_size, func=y_out_func
-        )
+        if isinstance(train_size, float) and train_size > 1.0:
+            raise ValueError("train_size must be a float between 0 and 1")
 
-        if isinstance(train_size, float):
-            if train_size > 1.0:
-                raise Exception("train size must be less than 1")
-            train_size = int(len(data_x) * train_size)
-
-        trainX, testX = data_x[:train_size], data_x[train_size:]
-        trainY, testY = data_y[:train_size], data_y[train_size:]
+        x, y = create_x_y(self, x_size, y_size,step_size=step_size, x_out_func=x_out_func, y_out_func=y_out_func)
+        trainX, testX, trainY, testY = train_test_split(x, y, train_size=train_size, shuffle=False)
 
         return trainX, testX, trainY, testY
 
@@ -222,12 +216,38 @@ class TimeSeries(CustomSerie):
                 abs((self.values - self.values.mean()) / self.values.std())
                 < kwargs.get("std", 3)
             )
+        if method.startswith("GROUP"):
+            group = kwargs.pop("group")
+            if group is None:
+                raise ValueError("group must be informed")
+
+            method = method.split("_")[1]
+
+            return self.groupby(group).transform(
+                lambda serie: serie.outliers(method=method, **kwargs)
+            )
 
     def replace_outliers(
         self, method="IQR", fill_func=lambda x, idx: np.mean(x), **kwargs
     ):
         serie_copy = self.copy()
         outliers_idxs = self.outliers(method, **kwargs)
+
+        if method.startswith("GROUP"):
+            group = kwargs.pop("group")
+            if group is None:
+                raise ValueError("group must be informed")
+
+            method = method.split("_")[1]
+
+            serie_copy = self.groupby(group).transform(
+                lambda serie: serie.replace_outliers(
+                    method=method, fill_func=fill_func, **kwargs
+                )
+            )
+
+            return serie_copy
+
         serie_no_outliers = self[~outliers_idxs]
         serie_copy[outliers_idxs] = [
             fill_func(serie_no_outliers, idx) for idx in outliers_idxs
@@ -444,6 +464,32 @@ class TimeSeriesDF(CustomDataFrame):
             df = df[df.index <= pd.to_datetime(end_date)]
 
         return df
+
+    def create_train_test(
+        self,
+        x_size,
+        y_size,
+        inputs_cols,
+        output_cols,
+        train_size=0.8,
+        step_size=1,
+        x_out_func=identity,
+        y_out_func=identity,
+    ):
+        if isinstance(train_size, float) and train_size > 1.0:
+            raise ValueError("train_size must be a float between 0 and 1")
+
+        x, y = create_x_y(self[inputs_cols].values, x_size, y_size, dataY=self[output_cols].values, step_size=step_size, x_out_func=x_out_func, y_out_func=y_out_func)
+        trainX, testX, trainY, testY = train_test_split(x, y, train_size=train_size, shuffle=False)
+
+        return trainX, testX, trainY, testY
+
+    @classmethod
+    def from_df(cls, df, date_index_column=None):
+        if date_index_column is not None:
+            df = df.set_index(pd.DatetimeIndex(df[date_index_column]))
+
+        return cls(df)
 
     @property
     def _constructor(self):

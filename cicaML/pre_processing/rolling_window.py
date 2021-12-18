@@ -1,3 +1,6 @@
+import numpy as np
+from cicaML.utils.functools import identity
+
 def window(array, step, stride):
     """
     Creates a rolling window.
@@ -13,7 +16,7 @@ def window(array, step, stride):
     return groups
 
 
-def create_x_y(data, step, stride_x, stride_y, dataY=None, aggregation_func_x = lambda x: x, aggregation_func_y=sum):
+def create_x_y(data, x_size, y_size, step_size=1, dataY=None, x_out_func = identity, y_out_func=identity):
     """
     Creates x and y data for a given data set.
     :param data: The data set.
@@ -24,18 +27,15 @@ def create_x_y(data, step, stride_x, stride_y, dataY=None, aggregation_func_x = 
     :return: x and y data.
     """
 
-    data_copy = data.copy()
-
     if dataY is None:
         dataY = data
 
-    dataY = dataY.values.copy()
-    x = window(data_copy[:-stride_y], step, stride_x)
-    y = window(dataY[stride_x:], step, stride_y)
+    x = window(data[:-y_size], step_size, x_size)
+    y = window(dataY[x_size:], step_size, y_size)
 
     min_len = min(len(x), len(y))
 
-    x = list(map(aggregation_func_x, x[:min_len]))
-    y = list(map(aggregation_func_y, y[:min_len]))
+    x = list(map(x_out_func, x[:min_len]))
+    y = list(map(y_out_func, y[:min_len]))
 
-    return x, y
+    return np.array(x), np.array(y)
