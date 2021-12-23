@@ -68,9 +68,8 @@ class Sample(ABC):
             for s2 in random_samples:
                 # print(s1.path)
                 # print(s1.crossover(s2).path)
-                new_population.append(s1.crossover(s2.mutate(0.4)))
+                new_population.append(s1.crossover(s2))
 
         """ for s1, mutate_rate in zip(population, population.mutate_rates):
             new_population.append(s1.mutate(mutate_rate))"""
-
         return new_population

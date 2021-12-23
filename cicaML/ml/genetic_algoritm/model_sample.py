@@ -43,6 +43,16 @@ def choice_sample_params(param_dict):
     return np.unique(params).tolist()
 
 
+def choose_probability(sample_1, sample_2):
+    if sample_1.fitness is None:
+        return 0.5
+    if sample_2.fitness is None:
+        return 0.5
+
+    return sample_1.fitness / (sample_1.fitness + sample_2.fitness)
+
+
+
 class ModelChoiceSample(Sample):
     def __init__(
         self,
@@ -74,10 +84,14 @@ class ModelChoiceSample(Sample):
             self.summary = summary
 
     def crossover(self, other):
-        if np.random.rand() < 0.1:
-            return other
-        else:
-            return self
+        params = {}
+        probability_self = choose_probability(self, other)
+        for param in self.params_universe:
+            if np.random.rand() < probability_self:
+                params[param] = self.params[param]
+            else:
+                params[param] = other.params[param]
+
 
     def save(self, filename):
         json.dump(self.summary, open(f"{filename}_summary.json", "w"), cls=NumpyEncoder)
