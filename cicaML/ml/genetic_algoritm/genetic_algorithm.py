@@ -23,6 +23,7 @@ class Genetic:
         max_generations=2000,
         verbose=False,
         plot_results=False,
+        stop_condition=None
     ):
         cont = 0
         while cont < max_generations:
@@ -47,6 +48,9 @@ class Genetic:
 
             if generation_callback:
                 generation_callback(cont, self.history, self.population)
+
+            if stop_condition and stop_condition(self):
+                break
 
         if plot_results:
             self.plot_history(["best_sample_score", "mean_samples_score"])
