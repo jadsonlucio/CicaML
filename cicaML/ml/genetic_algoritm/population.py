@@ -52,6 +52,9 @@ class Population:
             raise Exception("error")
 
     def append(self, sample):
+        if sample is None:
+            raise Exception("sample is None")
+
         if isinstance(sample, Population):
             for samp in sample:
                 self.samples.append(samp)

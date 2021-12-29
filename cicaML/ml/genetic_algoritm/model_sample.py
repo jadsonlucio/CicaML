@@ -87,11 +87,12 @@ class ModelChoiceSample(Sample):
         params = {}
         probability_self = choose_probability(self, other)
         for param in self.params_universe:
-            if np.random.rand() < probability_self:
+            if np.random.rand() <= probability_self:
                 params[param] = self.params[param]
             else:
                 params[param] = other.params[param]
 
+        return ModelChoiceSample(params, self.params_universe, self.fit_model_func)
 
     def save(self, filename):
         json.dump(self.summary, open(f"{filename}_summary.json", "w"), cls=NumpyEncoder)
