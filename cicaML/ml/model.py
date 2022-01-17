@@ -1,9 +1,10 @@
 import joblib
 import logging
-import itertools
 
-from sklearn.metrics import r2_score, mean_squared_error
+from abc import ABC, abstractclassmethod
+from cicaML.data_manager.manager import DataManager
 from cicaML.ml.model_result import ModelResult
+from cicaML.metrics import EVALUATION_METRICS
 
 logger = logging.getLogger(__name__)
 
@@ -18,122 +19,115 @@ def validate_model(func):
     return wrapper
 
 
-evaluation_funcs = {"r2_score": r2_score, "mse": mean_squared_error}
+class Model(ABC):
+    subclasses = {}
 
-
-class Model:
     def __init__(
         self,
-        model_obj,
         name,
         version,
         data_origin,
-        evaluation_func=None,
+        evaluation_func=EVALUATION_METRICS["wmape"],
         hyperparameters=None,
         metadata=None,
         fitted=False,
-        evaluation_score=None,
+        score=None,
+        data_manager=None,
     ):
+        if isinstance(data_manager, dict):
+            data_manager = DataManager(
+                data_manager["processing_methods"], data_manager["variables"]
+            )
+        data_manager = data_manager or DataManager([], {})
         self.name = name
         self.version = version
         self.data_origin = data_origin
         self.hyperparameters = hyperparameters or {}
         self.metadata = metadata or {}
-        self.evaluation_score = evaluation_score
-        self._model = model_obj
+        self.score = score
         self.fitted = fitted
         self.evaluation_func_name = None
+        self.data_manager = data_manager
+
         if isinstance(evaluation_func, str):
-            self.evaluation_func_name = evaluation_func
-            if evaluation_func not in evaluation_funcs:
+            evaluation_func = evaluation_func.lower()
+            if evaluation_func not in EVALUATION_METRICS:
                 raise Exception(f"evaluation function {evaluation_func} not found")
-            evaluation_func = evaluation_funcs[evaluation_func]
+            evaluation_func = EVALUATION_METRICS[evaluation_func]
 
         self.evaluation_func = evaluation_func
 
     @property
-    def model_params(self):
+    def extra_params(self):
+        return {}
+
+    @property
+    def build_params(self):
         return {
-            "name": self.name,
-            "version": self.version,
-            "data_origin": self.data_origin,
-            "hyperparameters": self.hyperparameters,
-            "metadata": self.metadata,
-            "evaluation_score": self.evaluation_score,
-            "evaluation_func": self.evaluation_func_name,
-            "fitted": self.fitted,
-            "model_obj": self._model,
+            "model_params": self.extra_params,
+            "data_manager": self.data_manager.json,
+            "identity_params": {
+                "name": self.name,
+                "version": self.version,
+                "data_origin": self.data_origin,
+                "metadata": self.metadata,
+            },
+            "train_result_params": {
+                "evaluation_func": self.evaluation_func_name,
+                "fitted": self.fitted,
+                "score": self.score,
+            },
+            "class_name": self.__class__.__name__,
+        }
+
+    @property
+    def results(self):
+        return {
+            "score": self.score,
         }
 
     @validate_model
     def save(self, output):
-        joblib.dump(self.model_params, output)
+        joblib.dump(self.build_params, output)
+
+    @validate_model
+    def predict_raw(self, data):
+        x = self.data_manager.get_variable("x", data)
+        return self.predict(x)
+
+    def fit_raw(self, data):
+        trainX, testX, trainY, testY = self.data_manager.get_variable("train", data)
+        self.fit(trainX, testX, trainY, testY)
+
+    @abstractclassmethod
+    def _fit(self, x_train, y_train):
+        pass
 
     def fit(self, x_train, x_test, y_train, y_test):
-        self._model.fit(x_train, y_train)
-        if x_test and y_test:
-            self.evaluation_score = self.evaluation_func(
-                y_test, self._model.predict(x_test)
-            )
+        self._fit(x_train, y_train)
+        if x_test is not None and y_test is not None and self.evaluation_func:
+            print(y_test, self.predict(x_test))
+            self.score = self.evaluation_func(y_test, self.predict(x_test))
         self.fitted = True
 
         return ModelResult(self, x_train, x_test, y_train, y_test)
 
+    @abstractclassmethod
     @validate_model
     def predict(self, X):
-        return self._model.predict(X)
+        pass
 
-    @validate_model
-    def evaluate(self, x_data, evaluation_func=None):
-        evaluation_func = evaluation_func or self.evaluation_func
-        if evaluation_func is None:
-            raise Exception("evaluation_func param must be passed")
+    @staticmethod
+    def load(target):
+        build_params = joblib.load(target)
+        class_ = Model.subclasses[build_params["class_name"]]
+        return class_(
+            data_manager=build_params["data_manager"],
+            **build_params["model_params"],
+            **build_params["identity_params"],
+            **build_params["train_result_params"],
+        )
 
-        evaluation_func = evaluation_func or self.evaluation_func
-
-    @classmethod
-    def load(cls, target):
-        model_params = joblib.load(target)
-        return cls(**model_params)
-
-    @classmethod
-    def grid_search(
-        cls,
-        estimator,
-        param_grid,
-        x_train,
-        x_test,
-        y_train,
-        y_test,
-        name,
-        version,
-        data_origin,
-        evaluation_func,
-        metadata=None,
-        *args,
-        **kwargs,
-    ):
-        result = []
-        for element in itertools.product(*param_grid.values()):
-            hyperparameters = dict(zip(param_grid.keys(), element))
-            model_obj = estimator(**hyperparameters)
-            model = cls(
-                model_obj,
-                name=name,
-                version=version,
-                data_origin=data_origin,
-                evaluation_func=evaluation_func,
-                metadata=metadata,
-                hyperparameters=hyperparameters,
-                *args,
-                **kwargs,
-            )
-            model.fit(x_train, x_test, y_train, y_test)
-            result.append((model.evaluation_score, model))
-            logger.info(
-                f"model {name} with hyperparams {hyperparameters} "
-                f"has score {model.evaluation_score}"
-            )
-
-        result = sorted(result, key=lambda a: a[0])
-        return result
+    def __init_subclass__(cls, **kwargs):
+        cls.subclasses[cls.__name__] = cls
+        super().__init_subclass__(**kwargs)
