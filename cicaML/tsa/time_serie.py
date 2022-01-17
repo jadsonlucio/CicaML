@@ -1,5 +1,4 @@
 # https://pandas.pydata.org/pandas-docs/stable/development/extending.html
-
 import numpy as np
 import pandas as pd
 import nolds
@@ -9,9 +8,11 @@ from datetime import datetime
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from statsmodels.tsa.seasonal import seasonal_decompose
+from cicaML.utils.array import flatten
 from cicaML.utils.functools import identity
 from cicaML.tsa.time_serie_plot import TimeSeriePlotEngine
 from cicaML.utils.pandas.df import CustomSerie, CustomDataFrame
+from cicaML.pre_processing import PROCESSING_METHODS
 from cicaML.pre_processing.rolling_window import create_x_y
 
 
@@ -85,8 +86,17 @@ class TimeSeries(CustomSerie):
         if isinstance(train_size, float) and train_size > 1.0:
             raise ValueError("train_size must be a float between 0 and 1")
 
-        x, y = create_x_y(self, x_size, y_size,step_size=step_size, x_out_func=x_out_func, y_out_func=y_out_func)
-        trainX, testX, trainY, testY = train_test_split(x, y, train_size=train_size, shuffle=False)
+        x, y = create_x_y(
+            self,
+            x_size,
+            y_size,
+            step_size=step_size,
+            x_out_func=x_out_func,
+            y_out_func=y_out_func,
+        )
+        trainX, testX, trainY, testY = train_test_split(
+            x, y, train_size=train_size, shuffle=False
+        )
 
         return trainX, testX, trainY, testY
 
@@ -469,7 +479,7 @@ class TimeSeriesDF(CustomDataFrame):
         self,
         x_size,
         y_size,
-        inputs_cols,
+        input_cols,
         output_cols,
         train_size=0.8,
         step_size=1,
@@ -479,10 +489,38 @@ class TimeSeriesDF(CustomDataFrame):
         if isinstance(train_size, float) and train_size > 1.0:
             raise ValueError("train_size must be a float between 0 and 1")
 
-        x, y = create_x_y(self[inputs_cols].values, x_size, y_size, dataY=self[output_cols].values, step_size=step_size, x_out_func=x_out_func, y_out_func=y_out_func)
-        trainX, testX, trainY, testY = train_test_split(x, y, train_size=train_size, shuffle=False)
+        x, y = create_x_y(
+            self[input_cols].values,
+            x_size,
+            y_size,
+            dataY=self[output_cols].values,
+            step_size=step_size,
+            x_out_func=x_out_func,
+            y_out_func=y_out_func,
+        )
+        x = list(map(flatten, x))
+        y = list(map(flatten, y))
+        trainX, testX, trainY, testY = train_test_split(
+            x, y, train_size=train_size, shuffle=False
+        )
 
         return trainX, testX, trainY, testY
+
+    def apply_processing_method(
+        self, column, method, params=None, name=None, replace=False
+    ):
+        if isinstance(method, str):
+            method = PROCESSING_METHODS[method.lower()]
+        params = params or {}
+        result = self[column].apply(method, **params)
+        if replace:
+            self[column] = result
+        else:
+            if not name:
+                name = method.__name__
+            self[name] = result
+        print(self.columns)
+        return self
 
     @classmethod
     def from_df(cls, df, date_index_column=None):
