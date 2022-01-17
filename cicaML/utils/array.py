@@ -3,6 +3,13 @@ import numpy as np
 from cicaML.utils.functools import identity
 
 
+def is_array(array):
+    if isinstance(array, list) or isinstance(array, tuple) or isinstance(array, np.ndarray):
+        return True
+
+    return False
+
+
 def rolling_window(array, window_size, step_size=1, func=identity):
     response = []
     for i in range(0, len(array) - window_size, step_size):
@@ -32,6 +39,21 @@ def fill_matrix(array):
             row.append(None)
 
     return np.array(array)
+
+
+def flatten(array):
+    if not is_array(array):
+        return array
+
+    flatted_list = []
+    for arr in array:
+        flatten_arr = flatten(arr)
+        if is_array(flatten_arr):
+            flatted_list.extend(flatten_arr)
+        else:
+            flatted_list.append(flatten_arr)
+
+    return np.array(flatted_list)
 
 
 class NumpyEncoder(json.JSONEncoder):
