@@ -1,16 +1,16 @@
 import numpy as np
+from cicaML.ml.model import Model
 
 
-class MovingAverage:
-    def __init__(self):
-        pass
+class MovingAverage(Model):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-    def fit(self, trainX, testX, trainY, testY):
+    def _fit(self, trainX, trainY):
         pass
 
     def predict(self, X):
         output = []
         for i in X:
             output.append(np.mean(i))
-
-        return output
+        return np.array(output)

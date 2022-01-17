@@ -23,12 +23,16 @@ def choice_sample_params(param_dict):
         else:
             if "default" in param_dict:
                 default = param_dict["default"]
-                params = np.random.choice(variations, size=sample_size - len(default), replace=False)
+                params = np.random.choice(
+                    variations, size=sample_size - len(default), replace=False
+                )
                 params = np.append((params, default))
 
                 return np.unique(params).tolist()
 
-            return np.random.choice(variations, size=sample_size, replace=False).tolist()
+            return np.random.choice(
+                variations, size=sample_size, replace=False
+            ).tolist()
 
     min_sample_size = param_dict.get("min_sample_size", 0)
     max_sample_size = param_dict.get("max_sample_size", len(variations))
@@ -50,7 +54,6 @@ def choose_probability(sample_1, sample_2):
         return 0.5
 
     return sample_1.fitness / (sample_1.fitness + sample_2.fitness)
-
 
 
 class ModelChoiceSample(Sample):
@@ -101,10 +104,7 @@ class ModelChoiceSample(Sample):
         pass
 
     def __str__(self):
-        return (
-            f"model:{self.model}, pre_processing_methods: {self.pre_processing_methods},"
-            f"input_params: {self.input_params}, fit_model_func: {self.fit_model_func}"
-        )
+        return str(self.params)
 
 
 def generate_init_population(
