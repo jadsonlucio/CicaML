@@ -16,7 +16,6 @@ def window(array, step, stride):
     groups = []
     for x in range(0, len(array) - stride + 1, step):
         groups.append(array[x : x + stride])
-
     return groups
 
 

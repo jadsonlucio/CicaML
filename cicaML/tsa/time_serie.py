@@ -519,7 +519,6 @@ class TimeSeriesDF(CustomDataFrame):
             if not name:
                 name = method.__name__
             self[name] = result
-        print(self.columns)
         return self
 
     @classmethod

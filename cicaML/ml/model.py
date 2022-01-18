@@ -20,6 +20,9 @@ def validate_model(func):
 
 
 class Model(ABC):
+    register_name = None
+    version = None
+
     subclasses = {}
 
     def __init__(
@@ -77,7 +80,7 @@ class Model(ABC):
                 "fitted": self.fitted,
                 "score": self.score,
             },
-            "class_name": self.__class__.__name__,
+            "register_name": self.register_name,
         }
 
     @property
@@ -106,7 +109,6 @@ class Model(ABC):
     def fit(self, x_train, x_test, y_train, y_test):
         self._fit(x_train, y_train)
         if x_test is not None and y_test is not None and self.evaluation_func:
-            print(y_test, self.predict(x_test))
             self.score = self.evaluation_func(y_test, self.predict(x_test))
         self.fitted = True
 
@@ -120,7 +122,7 @@ class Model(ABC):
     @staticmethod
     def load(target):
         build_params = joblib.load(target)
-        class_ = Model.subclasses[build_params["class_name"]]
+        class_ = Model.subclasses[build_params["register_name"]]
         return class_(
             data_manager=build_params["data_manager"],
             **build_params["model_params"],
@@ -129,5 +131,5 @@ class Model(ABC):
         )
 
     def __init_subclass__(cls, **kwargs):
-        cls.subclasses[cls.__name__] = cls
+        cls.subclasses[cls.register_name] = cls
         super().__init_subclass__(**kwargs)

@@ -3,6 +3,9 @@ from cicaML.ml.model import Model
 
 
 class MovingAverage(Model):
+    register_name = "moving_average"
+    version = "1.0"
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
