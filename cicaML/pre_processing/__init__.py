@@ -1,3 +1,4 @@
+from .debug import debug_train
 from .rolling_window import window
 from .outlier_removal import std_outlier_removal
 from .rolling_window import create_x_y, window, train_test_split  # noqa
@@ -11,4 +12,5 @@ PROCESSING_METHODS = {
         df[params.pop("input_cols")].values, df[params.pop("output_cols")].values, **params
     ),
     "test": lambda x: x,
+    "debug_train": debug_train
 }

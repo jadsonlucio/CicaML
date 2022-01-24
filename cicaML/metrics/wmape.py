@@ -28,6 +28,8 @@ def wape(true, pred):
 
 
 def wmape(true, pred, weights=None):
+    true = np.ravel(true)
+    pred = np.ravel(pred)
     if callable(weights):
         weights = weights(true, pred)
 
