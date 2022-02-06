@@ -3,6 +3,21 @@ from cicaML.ml.model import Model
 
 
 class XGBRegressor(Model):
+    """
+    XGBoost Regressor model
+
+    Parameters
+    ----------
+    objective : str
+        The objective function to use.
+    learning_rate : float
+        The learning rate.
+    max_depth : int
+        The maximum depth of the tree.
+    n_estimators : int
+        The number of trees in the forest.
+    """
+
     register_name = "xgb_regressor"
     version = "1.0"
 

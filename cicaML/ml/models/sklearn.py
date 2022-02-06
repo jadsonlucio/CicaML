@@ -4,6 +4,16 @@ from sklearn.ensemble import RandomForestRegressor
 
 
 class SklearnMLPRegressor(Model):
+    """
+    Sklearn regressor model.
+
+    Parameters
+    ----------
+    hidden_layer_sizes : list
+        The hidden layer sizes.
+
+    """
+
     register_name = "sklearn_mlp_regressor"
     version = "1.0"
 
@@ -31,14 +41,24 @@ class SklearnMLPRegressor(Model):
 
 
 class SklearnRandomForestRegressor(Model):
+    """
+    Random forest model.
+
+    Parameters
+    ----------
+    n_estimators : int
+        The number of trees in the forest.
+    random_state : int
+        Random seed.
+    """
     register_name = "sklearn_random_forest_regressor"
     version = "1.0"
 
-    def __init__(self, model=None, *args, **kwargs) -> None:
+    def __init__(self, n_estimators=10, random_state=42, model=None, *args, **kwargs) -> None:
         if model is not None:
             self._model = model
         else:
-            self._model = RandomForestRegressor(n_estimators=10, random_state=42)
+            self._model = RandomForestRegressor(n_estimators=n_estimators, random_state=random_state)
 
         super().__init__(*args, **kwargs)
 

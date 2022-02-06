@@ -1,4 +1,4 @@
-from cicaML.pre_processing import PROCESSING_METHODS
+from cicaML.processing import ProcessingMethod
 
 
 class DataManager:
@@ -9,35 +9,33 @@ class DataManager:
     def get_df(self, data):
         return data
 
-    def apply_processing_df(self, df):
-        for processing_method in self.processing_methods:
-            params = processing_method.get("params", None)
-            name = processing_method.get("name", None)
-            replace = processing_method.get("replace", False)
-            df = df.apply_processing_method(
-                processing_method["column"],
-                processing_method["method"],
-                params=params,
-                name=name,
-                replace=replace,
-            )
+    def apply_processing_methods(self, df, processing_methods):
+        # Todo: finish this
+        for processing_method in processing_methods:
+            extra_params = processing_method.pop("params", {})
+            method = processing_method.pop("method")
+            if isinstance(method, str):
+                method = ProcessingMethod.instances[method.lower()]
+            df = method(df, **extra_params, **processing_method)
+
         return df
 
+    def apply_processing_df(self, df):
+        return self.apply_processing_methods(df, self.processing_methods)
+
     def apply_processing_variable(self, df, variable):
+        processing_methods = ProcessingMethod.instances
         variable_processing = self.variables[variable]
-        columns = list(set(variable_processing["columns"]))
         output_processing_methods = variable_processing["output_processing_methods"]
-        use_df_input = variable_processing.get("use_df_input", False)
-        data = df[columns] if use_df_input else df[columns].values
         for processing_method in output_processing_methods:
             method = processing_method["method"]
             if isinstance(method, str):
-                method = PROCESSING_METHODS[method.lower()]
+                method = processing_methods[method.lower()]
 
             params = processing_method.get("params", {})
-            data = method(data, **params)
+            df = method(df, **params)
 
-        return data
+        return df
 
     def get_variable(self, variable, data, ignore_processing_df=False):
         if variable not in self.variables:
