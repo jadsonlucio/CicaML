@@ -1,5 +1,15 @@
+import numpy as np
+
+
 class ModelResult:
-    def __init__(self, base_model, trainX, testX, trainY, testY):
+    def __init__(
+        self,
+        base_model,
+        trainX: np.ndarray,
+        testX: np.ndarray,
+        trainY: np.ndarray,
+        testY: np.ndarray,
+    ):
         self.base_model = base_model
         self.trainX = trainX
         self.testX = testX

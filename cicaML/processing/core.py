@@ -25,6 +25,5 @@ class ProcessingMethod:
                 raise KeyError(f"{key} is not a valid parameter for {self.name}")
 
     def __call__(self, *args, **kwargs):
+        self.validate(*args, **kwargs)
         return self.method(*args, **kwargs)
-
-

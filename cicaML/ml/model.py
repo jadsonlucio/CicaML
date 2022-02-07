@@ -1,7 +1,11 @@
+from typing import Union
+
 import joblib
 import logging
 
 from abc import ABC, abstractclassmethod
+
+from pandas import DataFrame
 from cicaML.data_manager.manager import DataManager
 from cicaML.ml.model_result import ModelResult
 from cicaML.metrics import EVALUATION_METRICS
@@ -27,15 +31,15 @@ class Model(ABC):
 
     def __init__(
         self,
-        name,
-        version,
-        data_origin,
+        name: str,
+        version: str,
+        data_origin: str,
         evaluation_func=EVALUATION_METRICS["wmape"],
         hyperparameters=None,
         metadata=None,
         fitted=False,
         score=None,
-        data_manager=None,
+        data_manager: Union[DataManager, dict, None] = None,
     ):
         if isinstance(data_manager, dict):
             data_manager = DataManager(
@@ -94,13 +98,13 @@ class Model(ABC):
         joblib.dump(self.build_params, output)
 
     @validate_model
-    def predict_raw(self, data):
+    def predict_raw(self, data: DataFrame):
         x = self.data_manager.get_variable("x", data)
         return self.predict(x)
 
     def fit_raw(self, data):
         trainX, testX, trainY, testY = self.data_manager.get_variable("train", data)
-        self.fit(trainX, testX, trainY, testY)
+        return self.fit(trainX, testX, trainY, testY)
 
     @abstractclassmethod
     def _fit(self, x_train, y_train):
