@@ -1,4 +1,4 @@
-from typing import List, Tuple, TypedDict, Union
+from typing import List, Tuple, TypedDict, Union, Optional
 
 from .base import GenericList
 
@@ -16,7 +16,7 @@ class ProcessingMethodDict(TypedDict):
 class DataManagerVariable(TypedDict):
     columns: list
     output_processing_methods: List[ProcessingMethodDict]
-    use_df_input: bool
+    use_df_input: Optional[bool]
 
 
 class DataManagerVariables(TypedDict):

@@ -1,7 +1,8 @@
-from typing import List
+from typing import List, Union
 from pandas import DataFrame
 
 from cicaML.processing import PROCESSING_METHODS
+from cicaML.types.base import EmptyDict
 from cicaML.types.ml import (
     DataManagerVariable,
     DataManagerVariables,
@@ -13,7 +14,7 @@ class DataManager:
     def __init__(
         self,
         processing_methods: List[ProcessingMethodDict],
-        variables: DataManagerVariables,
+        variables: Union[DataManagerVariables, EmptyDict],
     ) -> None:
         self.processing_methods = processing_methods
         self.variables = variables
