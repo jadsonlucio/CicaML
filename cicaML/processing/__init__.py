@@ -15,5 +15,5 @@ PROCESSING_METHODS = {
     "train_test_split": train_test_split,
     "debug_train_data": debug_train_data,
     "test": test,
-    "flatten": flatten_nd_to_2d,
+    "flatten_nd_to_2d": flatten_nd_to_2d,
 }
