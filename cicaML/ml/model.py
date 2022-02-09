@@ -1,3 +1,4 @@
+import imp
 from typing import Union
 
 import joblib
@@ -9,6 +10,7 @@ from pandas import DataFrame
 from cicaML.data_manager.manager import DataManager
 from cicaML.ml.model_result import ModelResult
 from cicaML.metrics import EVALUATION_METRICS
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -99,7 +101,8 @@ class Model(ABC):
 
     @validate_model
     def predict_raw(self, data: DataFrame):
-        x = self.data_manager.get_variable("x", data)
+        x = np.array(self.data_manager.get_variable("x", data))
+        x = x.reshape(x.shape[:2])
         return self.predict(x)
 
     def fit_raw(self, data):
