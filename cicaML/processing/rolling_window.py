@@ -102,6 +102,7 @@ def create_x_y(
     return np.array(x), np.array(y)
 
 
+@processing_method(name="split_train_test", input_type="list", output_type="list")
 def train_test_split(
     input_data: GenericList,
     output_data: GenericList,

@@ -26,5 +26,3 @@ class ProcessingMethod:
 
     def __call__(self, *args, **kwargs):
         return self.method(*args, **kwargs)
-
-

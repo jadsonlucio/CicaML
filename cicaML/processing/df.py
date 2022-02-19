@@ -1,13 +1,13 @@
 import numpy as np
+from pandas import DataFrame
 from sklearn.preprocessing import OneHotEncoder
 from cicaML.processing.decorators import processing_method
 from .rolling_window import train_test_split
 
 
 @processing_method(name="weekday", input_type="df", output_type="column")
-def weekday(df):
-    """
-    Returns the weekday of the given dataframe.
+def weekday(df: DataFrame):
+    """Returns the weekday of the given dataframe.
 
     Parameters
     ----------
@@ -30,9 +30,8 @@ def weekday(df):
 
 
 @processing_method(name="month", input_type="df", output_type="column")
-def month(df):
-    """
-    Returns the month of the given dataframe.
+def month(df: DataFrame):
+    """Returns the month of the given dataframe.
 
     Parameters
     ----------
@@ -53,8 +52,7 @@ def month(df):
 
 @processing_method(name="df_train_test_split", input_type="df", output_type="column")
 def df_train_test_split(df, input_cols, output_cols, **kwargs):
-    """
-    Splits a dataframe into train and test data.
+    """Splits a dataframe into train and test data.
 
     Parameters
     ----------
@@ -69,6 +67,4 @@ def df_train_test_split(df, input_cols, output_cols, **kwargs):
 
     """
 
-    return train_test_split(
-        df[input_cols].values, df[output_cols].values, **kwargs
-    )
+    return train_test_split(df[input_cols].values, df[output_cols].values, **kwargs)

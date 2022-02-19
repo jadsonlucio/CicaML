@@ -1,48 +1,57 @@
-from cicaML.processing import ProcessingMethod
+from typing import List, Union
+from pandas import DataFrame
+
+from cicaML.processing import PROCESSING_METHODS
+from cicaML.types.base import EmptyDict
+from cicaML.types.ml import (
+    DataManagerVariable,
+    DataManagerVariables,
+    ProcessingMethodDict,
+)
 
 
 class DataManager:
-    def __init__(self, processing_methods, variables) -> None:
+    def __init__(
+        self,
+        processing_methods: List[ProcessingMethodDict],
+        variables: Union[DataManagerVariables, EmptyDict],
+    ) -> None:
         self.processing_methods = processing_methods
         self.variables = variables
 
-    def get_df(self, data):
-        return data
-
-    def apply_processing_methods(self, df, processing_methods):
-        # Todo: finish this
+    def apply_processing_methods(
+        self, input_data, processing_methods: List[ProcessingMethodDict]
+    ):
         for processing_method in processing_methods:
             extra_params = processing_method.pop("params", {})
             method = processing_method.pop("method")
             if isinstance(method, str):
-                method = ProcessingMethod.instances[method.lower()]
-            df = method(df, **extra_params, **processing_method)
+                method = PROCESSING_METHODS[method.lower()]
+            input_data = method(input_data, **extra_params, **processing_method)
 
-        return df
+        return input_data
 
-    def apply_processing_df(self, df):
+    def apply_processing_df(self, df: DataFrame):
         return self.apply_processing_methods(df, self.processing_methods)
 
-    def apply_processing_variable(self, df, variable):
-        processing_methods = ProcessingMethod.instances
-        variable_processing = self.variables[variable]
+    def apply_processing_variable(self, input_data, variable: str):
+        variable_processing: DataManagerVariable = self.variables[variable]
         output_processing_methods = variable_processing["output_processing_methods"]
         for processing_method in output_processing_methods:
             method = processing_method["method"]
             if isinstance(method, str):
-                method = processing_methods[method.lower()]
+                method = PROCESSING_METHODS[method.lower()]
 
             params = processing_method.get("params", {})
-            df = method(df, **params)
+            input_data = method(input_data, **params)
 
-        return df
+        return input_data
 
-    def get_variable(self, variable, data, ignore_processing_df=False):
+    def get_variable(self, variable: str, df: DataFrame, ignore_processing_df=False):
         if variable not in self.variables:
             raise Exception(
-                f"variable {variable} not found, valid options are: {self.variables.keys()}"
+                f"Variable {variable} not found, valid options are: {self.variables.keys()}"
             )
-        df = self.get_df(data)
         if not ignore_processing_df:
             df = self.apply_processing_df(df)
 

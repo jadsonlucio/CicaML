@@ -12,9 +12,8 @@ from cicaML.utils.array import flatten
 from cicaML.utils.functools import identity
 from cicaML.tsa.time_serie_plot import TimeSeriePlotEngine
 from cicaML.utils.pandas.df import CustomSerie, CustomDataFrame
-from cicaML.processing import ProcessingMethod
 from cicaML.processing.rolling_window import create_x_y
-
+from cicaML.processing import PROCESSING_METHODS
 
 from cicaML.utils.collections import merge
 from cicaML.utils.plotly_utils import hline
@@ -509,9 +508,8 @@ class TimeSeriesDF(CustomDataFrame):
     def apply_processing_method(
         self, column, method, params=None, name=None, replace=False
     ):
-        processing_methods = ProcessingMethod.instances
         if isinstance(method, str):
-            method = processing_methods[method.lower()]
+            method = PROCESSING_METHODS[method.lower()]
         params = params or {}
         result = self[column].apply(method, **params)
         if replace:

@@ -1,6 +1,7 @@
 from cicaML.utils.array import flatten
 from cicaML.processing.decorators import processing_method
 
+
 @processing_method(name="flatten_nd_to_2d", input_type="list", output_type="list")
 def flatten_nd_to_2d(array):
     """
